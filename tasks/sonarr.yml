@@ -1,0 +1,43 @@
+
+- name: "wait for Sonarr to come up"
+  uri:
+    url: "{{ sonarr_url }}/"
+    status_code: 200
+    validate_certs: "{{ validate_certs }}"
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 10
+
+- name: Get the config file from the container
+  shell: |
+    kubectl --namespace=seedbox exec -it {{ sonarr_pod.stdout }} -- mkdir /root/TV
+    kubectl --namespace=seedbox exec -it {{ sonarr_pod.stdout }} -- chown abc:abc -R /root
+    kubectl cp seedbox/{{ sonarr_pod.stdout }}:/config/config.xml /tmp/
+
+- name: Get the sonarr API Key
+  xml:
+    path: /tmp/config.xml
+    xpath: /Config/ApiKey
+    content: text
+  register: sonarr_api_key
+
+- name: Transfering templates to /tmp
+  template: src={{ item }} dest=/tmp/{{ item | basename | regex_replace('\.j2','') }}
+  with_fileglob:
+    - templates/sonarr/*.j2
+
+- name: Init Sonarr
+  shell: |
+    mkdir /root/TV
+    chown -R abc:abc /root/TV
+    curl -v {{sonarr_url}}/api/rootfolder\?apikey\={{sonarr_api_key.matches.0.ApiKey}} -d @/tmp/path.json
+    curl -v {{sonarr_url}}/api/downloadclient\?apikey\={{sonarr_api_key.matches.0.ApiKey}} -d @/tmp/deluge.json
+    curl -v {{sonarr_url}}/api/indexer\?apikey\={{sonarr_api_key.matches.0.ApiKey}} -d @/tmp/jackett_indexer.json
+    curl -vX PUT {{sonarr_url}}/api/config/host\?apikey\={{sonarr_api_key.matches.0.ApiKey}} -d @/tmp/host.json
+  args:
+    warn: false
+
+- name: Delete pod to get the new config
+  shell: |
+    kubectl  --namespace=seedbox delete pod {{ sonarr_pod.stdout }}

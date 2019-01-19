@@ -1,0 +1,18 @@
+{
+  "prune": false,
+  "type": "app",
+  "name": "seedbox",
+  "answers":
+  {
+    "domain_name": "{{ seedbox_chart_domain_name }}",
+    "timezone": "{{ seedbox_chart_timezone }}",
+    "seafile_admin_email": "{{ seedbox_chart_seafile_admin_email }}",
+    "seafile_admin_password": "{{ seedbox_chart_seafile_admin_password }}",
+    "netdata_basic_auth": "{{ netdata_base64 }}",
+    "clusterissuer": "{{ seedbox_chart_cluterissuer_name }}",
+
+  },
+  "targetNamespace": "seedbox",
+  "externalId": "catalog://?catalog=seedbox&template=seedbox&version=0.0.1",
+  "projectId": "{{ project_result.json.data[1].id }}"
+}

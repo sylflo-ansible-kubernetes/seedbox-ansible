@@ -1,0 +1,94 @@
+- name: "Copy script into Rook tools pod"
+  shell: kubectl -n rook-ceph cp {{ path_template_create_directory_in_filesystem_rook_volume}} $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}'):/
+  delegate_to: 127.0.0.1
+  connection: local
+
+- name: "Excute script copied in Rook tools pod"
+  shell: kubectl -n rook-ceph exec  $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') /bin/bash /create_directory_in_filesystem_rook_volume.sh
+  delegate_to: 127.0.0.1
+  connection: local
+
+- name: Login to rancher
+  uri:
+    url: '{{ rancher_url }}/v3-public/localProviders/local?action=login'
+    method: POST
+    body: {"username": "admin", "password": "{{ rancher_admin_password }}"}
+    status_code: 201
+    body_format: json
+    validate_certs: "{{ validate_certs_rancher }}"
+  register: login_result
+  until: login_result.status == 201
+
+- name: Create api key (expires in 1 day)
+  uri:
+    url: '{{ rancher_url }}/v3/token'
+    method: POST
+    body: {"current":false, "expired":false, "isDerived":false, "ttl":86400000, "type":"token", "description":"seedbox-automation"}
+    status_code: 201
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ login_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher }}"
+  register: api_key_result
+
+- name: Install catalog
+  uri:
+    url: '{{ rancher_url }}/v3/catalog'
+    method: POST
+    body: {"baseType":"catalog", "branch":null, "kind":"helm", "name":"seedbox", "state":"active", "type":"catalog", "url":"https://github.com/sylflo/seedbox-chart"}
+    status_code: 201
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ api_key_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher }}"
+  register: catalog_result
+
+- name: Get cluster
+  uri:
+    url: '{{ rancher_url }}/v3/clusters?name={{ rancher_cluster }}'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ api_key_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher }}"
+  register: cluster_result
+
+- name: Get project associated to cluster
+  uri:
+    url: '{{ rancher_url }}/v3/projects?clusterId={{ cluster_result.json.data[0].id }}'
+    method: GET
+    status_code: 200
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ api_key_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher }}"
+  register: project_result
+
+- name: Create namespace seedbox
+  uri:
+    url: '{{ rancher_url }}/v3/clusters/{{ cluster_result.json.data[0].id }}/namespace'
+    method: POST
+    body: {"type":"namespace","name":"seedbox","projectId":"{{ item.id }}"}
+    status_code: 201
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ api_key_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher }}"
+  with_items: "{{  project_result.json.data }}"
+  when:
+    - item.name == "Default"
+
+- name: Launch the app
+  uri:
+    url: '{{ rancher_url }}/v3/projects/{{ item.id }}/app'
+    method: POST
+    body: "{{ lookup('template','install_catalog/projects.json.j2') }}"
+    status_code: 201
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ api_key_result.json.token }}"
+    validate_certs: "{{ validate_certs_rancher}}"
+  with_items: "{{  project_result.json.data }}"
+  when:
+    - item.name == "Default"

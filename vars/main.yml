@@ -1,0 +1,34 @@
+validate_certs: true
+validate_certs_rancher: false
+domain_name: "seedbox_domain_name.com"
+rancher_domain_name: "rancher_domain_name.com"
+rancher_admin_password: "rancher_password"
+rancher_cluster: "cluster_name"
+clusterissuer_name: "letsencrypt-prod"
+
+netdata_base64: "bmV0ZGF0YTokYXByMSRBRS5zNVo4UyRxU0d4UGV3YnFSMXI1REpTT3BXa3gvCg=="
+
+deluge_url: "deluge:8112"
+deluge_web_password: "deluge"
+
+jackett_url: "https://jackett.{{ domain_name }}"
+jackett_api_key: ""
+
+seafile_admin_email: "seafile@seafile"
+seafile_admin_password: "seafile"
+
+radarr_web_username: "radarr"
+radarr_web_password: "radarr"
+
+sonarr_web_username: "sonarr"
+sonarr_web_password: "sonarr"
+
+seedbox_pod: ""
+emby_pod: ""
+headphones_pod: ""
+heimdall_pod: ""
+jackett_pod: ""
+koel_pod: ""
+radarr_pod: ""
+seafile_pod: ""
+sonarr_pod: ""

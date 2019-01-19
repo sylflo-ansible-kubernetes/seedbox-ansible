@@ -1,0 +1,16 @@
+- include: install_catalog.yml
+  tags: install_catalog
+
+- include: get_pods.yml
+
+- include: deluge_and_jackett.yml
+  tags: deluge_and_jackett
+
+- include: radarr.yml
+  tags: radarr
+
+- include: sonarr.yml
+  tags: sonarr
+
+- include: heimdall.yml
+  tags: heimdall

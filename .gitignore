@@ -1,0 +1,11 @@
+ansible/playbook.retry
+data/
+deluge/
+sickrage
+ubiquiti.png
+.vagrant
+*.pyc
+__pychache__
+from_vagrant
+docker_compose/
+

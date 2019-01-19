@@ -1,0 +1,109 @@
+{
+   "enable":true,
+   "protocol":"torrent",
+   "name":"Deluge",
+   "fields":[
+      {
+         "order":0,
+         "name":"Host",
+         "label":"Host",
+         "value":"deluge",
+         "type":"textbox",
+         "advanced":false
+      },
+      {
+         "order":1,
+         "name":"Port",
+         "label":"Port",
+         "value":8112,
+         "type":"textbox",
+         "advanced":false
+      },
+      {
+         "order":2,
+         "name":"UrlBase",
+         "label":"Url Base",
+         "helpText":"Adds a prefix to the deluge json url, see http://[host]:[port]/[urlBase]/json",
+         "type":"textbox",
+         "advanced":true
+      },
+      {
+         "order":3,
+         "name":"Password",
+         "label":"Password",
+         "value":"{{ deluge_web_password.user_input }}",
+         "type":"password",
+         "advanced":false
+      },
+      {
+         "order":4,
+         "name":"MovieCategory",
+         "label":"Category",
+         "helpText":"Adding a category specific to Radarr avoids conflicts with unrelated downloads, but it's optional",
+         "value":"movies",
+         "type":"textbox",
+         "advanced":false
+      },
+      {
+         "order":5,
+         "name":"RecentMoviePriority",
+         "label":"Recent Priority",
+         "helpText":"Priority to use when grabbing movies that released within the last 21 days",
+         "value":0,
+         "type":"select",
+         "advanced":false,
+         "selectOptions":[
+            {
+               "value":1,
+               "name":"First"
+            },
+            {
+               "value":0,
+               "name":"Last"
+            }
+         ]
+      },
+      {
+         "order":6,
+         "name":"OlderMoviePriority",
+         "label":"Older Priority",
+         "helpText":"Priority to use when grabbing movies that released over 21 days ago",
+         "value":0,
+         "type":"select",
+         "advanced":false,
+         "selectOptions":[
+            {
+               "value":1,
+               "name":"First"
+            },
+            {
+               "value":0,
+               "name":"Last"
+            }
+         ]
+      },
+      {
+         "order":7,
+         "name":"AddPaused",
+         "label":"Add Paused",
+         "value":false,
+         "type":"checkbox",
+         "advanced":false
+      },
+      {
+         "order":8,
+         "name":"UseSsl",
+         "label":"Use SSL",
+         "value":false,
+         "type":"checkbox",
+         "advanced":false
+      }
+   ],
+   "implementationName":"Deluge",
+   "implementation":"Deluge",
+   "configContract":"DelugeSettings",
+   "infoLink":"https://github.com/Radarr/Radarr/wiki/Supported-DownloadClients#deluge",
+   "presets":[
+
+   ]
+}

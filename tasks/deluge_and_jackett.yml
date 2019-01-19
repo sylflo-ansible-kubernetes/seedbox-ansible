@@ -1,0 +1,32 @@
+- pause:
+    prompt: "Plese change Deluge password"
+
+- pause:
+    prompt: "Please enter new deluge password"
+  register: "deluge_web_password"
+
+- pause:
+    prompt: "Plese add label 'movies' for Movies the path has to be /root/Movies"
+
+- pause:
+    prompt: "Plese add label 'tv' for TV shows the path has to be /root/TV"
+
+- name: "wait for Jackett to come up"
+  uri:
+    url: "{{jackett_url}}/UI/Dashboard"
+    status_code: 200
+    validate_certs: "{{ validate_certs }}"
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 10
+
+- pause:
+    prompt: "Please add an admin password for Jackett"
+
+- pause:
+    prompt: "Plese add all your indexer for Jackett {{jackett_url}}/UI/Dashboard"
+
+- pause:
+    prompt: "Please enter the Api Key of Jackett"
+  register: "jackett_api_key"

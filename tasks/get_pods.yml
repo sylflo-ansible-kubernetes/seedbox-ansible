@@ -1,0 +1,49 @@
+- name: Get kubectl config and copy it in $HOME/.kube/config
+  shell: |
+     cd /tmp
+     wget https://gist.githubusercontent.com/superseb/f6cd637a7ad556124132ca39961789a4/raw/4db7da97073ccb6049f797df1880dcd36850179e/get_kubeconfig_custom_cluster_rancher2.sh
+     chmod +x get_kubeconfig_custom_cluster_rancher2.sh
+     mkdir -p /root/.kube
+     ./get_kubeconfig_custom_cluster_rancher2.sh {{ rancher_cluster }}
+     cp kubeconfig /root/.kube/config
+
+- name: Install kubectl
+  shell: |
+     apt update && sudo apt install -y apt-transport-https python-passlib
+     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+     touch /etc/apt/sources.list.d/kubernetes.list
+     echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list
+     apt update
+     apt install -y kubectl
+
+- name: "Get deluge pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[0].metadata.name}"
+  register: seedbox_pod
+
+- name: "Get heimdall pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[1].metadata.name}"
+  register: heimdall_pod
+
+- name: "Get jackett pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[2].metadata.name}"
+  register: jackett_pod
+
+- name: "Get netdata pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[3].metadata.name}"
+  register: netdata_pod
+
+- name: "Get plex pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[4].metadata.name}"
+  register: plex_pod
+
+- name: "Get radarr pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[5].metadata.name}"
+  register: radarr_pod
+
+- name: "Get seafile pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[6].metadata.name}"
+  register: seafile_pod
+
+- name: "Get sonarr pod"
+  shell: kubectl --namespace=seedbox get pods -o jsonpath="{.items[7].metadata.name}"
+  register: sonarr_pod

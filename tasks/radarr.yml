@@ -1,0 +1,43 @@
+
+- name: "wait for Radarr to come up"
+  uri:
+    url: "{{ radarr_url }}/"
+    status_code: 200
+    validate_certs: "{{ validate_certs }}"
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 10
+
+- name: Get the config file from the container
+  shell: |
+    kubectl --namespace=seedbox exec -it {{ radarr_pod.stdout }} -- mkdir /root/Movies
+    kubectl --namespace=seedbox exec -it {{ radarr_pod.stdout }} -- chown abc:abc -R /root
+    kubectl cp seedbox/{{ radarr_pod.stdout }}:/config/config.xml /tmp/
+
+- name: Get the radarr API Key
+  xml:
+    path: /tmp/config.xml
+    xpath: /Config/ApiKey
+    content: text
+  register: radarr_api_key
+
+- name: Transfering templates to /tmp
+  template: src={{ item }} dest=/tmp/{{ item | basename | regex_replace('\.j2','') }}
+  with_fileglob:
+    - templates/radarr/*.j2
+
+- name: Init Radarr
+  shell: |
+    mkdir /root/Movies
+    chown -R abc:abc /root/Movies
+    curl -v {{radarr_url}}/api/rootfolder?apikey={{radarr_api_key.matches.0.ApiKey}} -d @/tmp/path.json
+    curl -v {{radarr_url}}/api/downloadclient?apikey={{radarr_api_key.matches.0.ApiKey}} -d @/tmp/deluge.json
+    curl -v {{radarr_url}}/api/indexer?apikey={{radarr_api_key.matches.0.ApiKey}} -d @/tmp/jackett_indexer.json
+    curl -vX PUT {{radarr_url}}/api/config/host\?apikey\={{radarr_api_key.matches.0.ApiKey}} -d @/tmp/host.json
+  args:
+    warn: false
+
+- name: Delete pod to get the new config
+  shell: |
+    kubectl  --namespace=seedbox delete pod {{ radarr_pod.stdout }}
